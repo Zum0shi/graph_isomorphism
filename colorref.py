@@ -15,7 +15,7 @@ def basic_colorref(path):
 
     # iterate over every graph
     for i in range(len(graph_dict)):
-        print("STARTING GRAPH " + str(i) + " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("STARTING GRAPH " + str(i) + " #####################################################################")
         iteration = 0
         vertex_dict = graph_dict[i]
         have_same_neighborhood = defaultdict(set)
@@ -30,8 +30,8 @@ def basic_colorref(path):
         while old_color_classes != new_color_classes:
             # update dictionaries and iteration counter
             iteration += 1
-            old_color_classes = new_color_classes.copy()
-            new_color_classes.clear()
+            old_color_classes = new_color_classes
+            new_color_classes = {}
 
             # iterate over all color classes
             for c in old_color_classes:
@@ -42,7 +42,7 @@ def basic_colorref(path):
                     have_same_neighborhood[
                         tuple(get_neighbor_colors(glist[i].vertices[vtx].neighbours, vertex_dict))].add(vtx)
 
-                # iterate over all neighborhoods and change colors of all except the first
+                # iterate over all neighborhoods that share a color and change colors of all except the first
                 temp = list(have_same_neighborhood.keys())[1:]
                 for n in temp:
                     vertex_dict["last_color"] += 1
@@ -53,16 +53,16 @@ def basic_colorref(path):
             for v in range(len(vertex_dict) - 1):
                 new_color_classes[vertex_dict[v]].add(v)
 
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF ITERATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF ITERATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
         # printing of some results for debugging
-        print("number of iterations: " + str(iteration))
         result = []
         for h in old_color_classes:
             result.append(len(old_color_classes[h]))
         result.sort()
         print(old_color_classes)
         print("list of partition: " + str(result))
+        print("number of iterations: " + str(iteration))
 
 
 def degree_coloring(glist):
@@ -86,4 +86,4 @@ def get_neighbor_colors(vlist, vertex_dict):
     return result
 
 
-basic_colorref("./SampleGraphsBasicColorRefinement/cref9vert3comp_10_27.grl")
+basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_4_16.grl")
