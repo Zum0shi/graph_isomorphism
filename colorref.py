@@ -38,6 +38,7 @@ def basic_colorref(path):
                 have_same_neighborhood.clear()
 
                 # create a dictionary of neighborhoods of the vertices in said color class
+                vertex_dict_copy = vertex_dict.copy()
                 for vtx in old_color_classes[c]:
                     have_same_neighborhood[
                         tuple(get_neighbor_colors(glist[i].vertices[vtx].neighbours, vertex_dict))].add(vtx)
