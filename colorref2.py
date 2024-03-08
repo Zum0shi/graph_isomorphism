@@ -119,4 +119,4 @@ def parse_data(data):
     return result
 
 
-basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
+# basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
