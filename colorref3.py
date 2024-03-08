@@ -28,7 +28,6 @@ def basic_colorref(path):
         for g in graph_dict:
             if graph_dict[g][0]:
                 if not graph_dict[g][2]:
-                    print(vertex_dict)
                     for vertex in glist[g].vertices:
                         result_dict[(g, vertex.label)] = vertex_dict[(g, vertex.label)]
                         del vertex_dict[(g, vertex.label)]
@@ -61,8 +60,8 @@ def basic_colorref(path):
                     for vertex in neighborhoods[n]:
                         new_vertex_dict[vertex] = last_color
 
-        for g in graph_dict:
-            print(g, graph_dict[g][1])
+        # for g in graph_dict:
+        #     print(g, graph_dict[g][1])
 
         # check if refining process finished
         if vertex_dict == new_vertex_dict:
@@ -79,7 +78,7 @@ def basic_colorref(path):
             check_stability(glist, graph_dict, vertex_dict, new_vertex_dict)
             vertex_dict = new_vertex_dict
 
-    return parse_data(result_dict, graph_dict)
+    return parse_data(result_dict, graph_dict, glist)
 
 
 # creates a dictionary of all vertices and their colors based on degree coloring
@@ -125,44 +124,31 @@ def check_stability(glist, graph_dict, vertex_dict, new_vertex_dict):
                     break
 
 
-def parse_data(result_dict, graph_dict):
-    print(result_dict)
-    color_partition_per_graph = defaultdict()
+def parse_data(result_dict, graph_dict, glist):
+    color_partition_per_graph = defaultdict(list)
     for g in graph_dict:
         color_dict = defaultdict(list)
         color_len = defaultdict()
+        temp = []
         for key in result_dict:
-            temp = []
             if key[0] == g:
                 color_dict[result_dict[key]].append(result_dict[key])
-                tup = (result_dict[key], len(color_dict[result_dict[key]]))
-                temp.append(tup)
                 color_len[result_dict[key]] = len(color_dict[result_dict[key]])
                 color_len = dict(sorted(color_len.items()))
-        color_partition_per_graph[g] = color_len
+        for vtx in color_len:
+            tup = (vtx, color_len[vtx])
+            temp.append(tup)
+        color_partition_per_graph[tuple(temp)].append(g)
 
+    result = []
     for s in color_partition_per_graph:
-        print(s , color_partition_per_graph[s])
-    # print(color_partition_per_graph)
+        print(color_partition_per_graph[s], s)
+        tupp = (color_partition_per_graph[s], graph_dict[color_partition_per_graph[s][0]][1],
+                len(s) == len(glist[color_partition_per_graph[s][0]].vertices))
+        result.append(tupp)
+
+    print(result)
+    return result
 
 
-#     result = []
-#     for entry in color_partition_per_graph:
-#         tup = []
-
-    # color_partition_per_graph[key[0]].append(result_dict[key])
-    # print(result_dict)
-
-    # print(cc)
-    # print(v)
-    # cc_per_graph[v[0]].append(cc)
-    # print(cc_per_graph)
-
-    # cc_per_graph[v[0]] = v[1]
-
-    # temp = {}
-    # for g in graph_dict:
-    #     temp[g] = [graph_dict[g][1], ]
-
-
-basic_colorref("./SampleGraphsBasicColorRefinement/cref9vert3comp_10_27.grl")
+basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
