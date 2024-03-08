@@ -1,90 +1,168 @@
 from graph import *
 from collections import defaultdict
 from graph_io import *
-from line_profiler_pycharm import profile
 
 
-@profile
+# from line_profiler_pycharm import profile
+
+
+# @profile
 def basic_colorref(path):
     # create a list of all graphs in the file
     with open(path) as G:
         glist = read_graph_list(Graph, G)[0]
 
-    # create a dictionary for storing colors and initiate with degree coloring
-    graph_dict = degree_coloring(glist)
+    # a dictionary containing key = (graph_index, vertex.label), value = color | after degree coloring
+    vertex_dict = degree_coloring(glist)
+    # creates a dictionary with key = graph_index and value = list(isStable , iterations, isFinished)
+    graph_dict = generate_graph_dict(glist)
+    # dictionary to store data of successfully refined graphs
+    result_dict = defaultdict(list)
 
-    # iterate over every graph
-    for i in range(len(graph_dict)):
-        print("STARTING GRAPH " + str(i) + " #####################################################################")
-        iteration = 0
-        vertex_dict = graph_dict[i]
-        have_same_neighborhood = defaultdict(set)
-        new_color_classes = defaultdict(set)
-        old_color_classes = {}
+    # variables for refinement
+    all_stable = False
+    last_color = max(vertex_dict.values())
 
-        # populate 'new_color_classes' with key = color , value = set(vertex labels)
-        for v in range(len(vertex_dict) - 1):
-            new_color_classes[vertex_dict[v]].add(v)
+    # begin refining process
+    while not all_stable:
 
-        # start refining process
-        while old_color_classes != new_color_classes:
-            # update dictionaries and iteration counter
-            iteration += 1
-            old_color_classes = new_color_classes
-            new_color_classes = {}
+        # if graphs are stable pull their vertices out of vertex_dict, otherwise increase iteration count
+        for g in graph_dict:
+            if graph_dict[g][0]:
+                if not graph_dict[g][2]:
+                    for vertex in glist[g].vertices:
+                        result_dict[(g, vertex.label)] = vertex_dict[(g, vertex.label)]
+                        del vertex_dict[(g, vertex.label)]
+                        # print("IM HERE HEHE")
+                    graph_dict[g][2] = True
+            else:
+                graph_dict[g][1] += 1
 
-            # iterate over all color classes
-            for c in old_color_classes:
-                have_same_neighborhood.clear()
+        # reset color class dictionary and new_vertex_dict
+        color_classes = defaultdict(set)
+        new_vertex_dict = vertex_dict.copy()
 
-                # create a dictionary of neighborhoods of the vertices in said color class
-                vertex_dict_copy = vertex_dict.copy()
-                for vtx in old_color_classes[c]:
-                    have_same_neighborhood[
-                        tuple(get_neighbor_colors(glist[i].vertices[vtx].neighbours, vertex_dict))].add(vtx)
+        # populates color_classes, group vertices by color: dict{key = color , value = set{(graph, vertex.label)}}
+        for key in vertex_dict:
+            color_classes[vertex_dict[key]].add(key)
+        color_classes = dict(sorted(color_classes.items()))
 
-                # iterate over all neighborhoods that share a color and change colors of all except the first
-                temp = list(have_same_neighborhood.keys())[1:]
-                for n in temp:
-                    vertex_dict["last_color"] += 1
-                    for ve in have_same_neighborhood[n]:
-                        vertex_dict[ve] = vertex_dict["last_color"]
+        # creates a dictionary for neighbors colors
+        for cc in color_classes:
+            print("neighborhoods in color class: ", cc)
 
-            # updated color class
-            for v in range(len(vertex_dict) - 1):
-                new_color_classes[vertex_dict[v]].add(v)
+            neighborhoods = defaultdict(set)
 
-            # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF ITERATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            # populate neighborhoods
+            for k in color_classes[cc]:
+                neighborhoods[tuple(get_neighbor_colors(glist[k[0]].vertices[k[1]].neighbours, k[0], vertex_dict))].add(
+                    k)
 
-        # printing of some results for debugging
-        result = []
-        for h in old_color_classes:
-            result.append(len(old_color_classes[h]))
-        result.sort()
-        print(old_color_classes)
-        print("list of partition: " + str(result))
-        print("number of iterations: " + str(iteration))
+            # add updated colors to new dict
+            for index, n in enumerate(neighborhoods):
+                if index == 0:
+                    print("skipping vertices: ", neighborhoods[n])
+
+                if index > 0:
+                    print("recoloring vertices: ", neighborhoods[n])
+                    last_color += 1
+
+                    for vertex in neighborhoods[n]:
+                        new_vertex_dict[vertex] = last_color
+
+        # check if refining process finished
+        if vertex_dict == new_vertex_dict:
+            for g in graph_dict:
+                print(g, graph_dict[g][1])
+
+            # add remaining vertices
+            for entry in vertex_dict:
+                result_dict[entry] = vertex_dict[entry]
+
+            # end refinement process
+            all_stable = True
+
+        else:
+            # check if any graphs have been stabilized during this iteration
+            check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes)
+            vertex_dict = new_vertex_dict
+
+    return parse_data(result_dict, graph_dict, glist)
 
 
+# creates a dictionary of all vertices and their colors based on degree coloring
 def degree_coloring(glist):
-    graph_dict = {}
-    for g in range(len(glist)):
-        vertex_dict = {}
-        for v in range(len(glist[g].vertices)):
-            vertex_dict[v] = glist[g].vertices[v].degree
-        # creates an entry in the dictionary with a variable that stores the highest used color
-        vertex_dict["last_color"] = max(vertex_dict.values())
-        graph_dict[g] = vertex_dict
-    return graph_dict
+    result = defaultdict()
+    for i, g in enumerate(glist):
+        for vertex in g.vertices:
+            tup = (i, vertex.label)
+            result[tup] = vertex.degree
+    return result
+
+
+# creates a dictionary with key = graph and value = tuple(isStable , iterations)
+def generate_graph_dict(glist):
+    result = defaultdict(list)
+    for i in range(len(glist)):
+        result[i] = [False, 0, False]
+    return result
 
 
 # takes a list of neighbors and a vertex_dict and returns a sorted list of their colors
-def get_neighbor_colors(vlist, vertex_dict):
+def get_neighbor_colors(vlist, graph_index, vertex_dict):
     result = []
     for v in vlist:
-        result.append(vertex_dict[v.label])
+        result.append(vertex_dict[(graph_index, v.label)])
     result.sort()
     return result
 
 
-basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_4_16.grl")
+# for each graph check whether it has stabilized
+def check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes):
+    for i, g in enumerate(glist):
+        if not graph_dict[i][0]:
+            vertices = []
+            colors_before = set()
+            colors_after = set()
+            for vertex in g.vertices:
+                tup = (i, vertex.label)
+                vertices.append(tup)
+            set(vertices)
+            graph_dict[i][0] = True
+
+            for key in vertices:
+                colors_before.add(vertex_dict[key])
+                colors_after.add(new_vertex_dict[key])
+
+            if len(colors_before) != len(colors_after):
+                graph_dict[i][0] = False
+
+
+# prepare data for codegrade
+def parse_data(result_dict, graph_dict, glist):
+    color_partition_per_graph = defaultdict(list)
+    for g in graph_dict:
+        color_dict = defaultdict(list)
+        color_len = defaultdict()
+        temp = []
+        for key in result_dict:
+            if key[0] == g:
+                color_dict[result_dict[key]].append(result_dict[key])
+                color_len[result_dict[key]] = len(color_dict[result_dict[key]])
+                color_len = dict(sorted(color_len.items()))
+        for vtx in color_len:
+            tup = (vtx, color_len[vtx])
+            temp.append(tup)
+        color_partition_per_graph[tuple(temp)].append(g)
+
+    result = []
+    for s in color_partition_per_graph:
+        # print(color_partition_per_graph[s], s)
+        tupp = (color_partition_per_graph[s], graph_dict[color_partition_per_graph[s][0]][1],
+                len(s) == len(glist[color_partition_per_graph[s][0]].vertices))
+        result.append(tupp)
+
+    print(result)
+    return result
+
+# basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
