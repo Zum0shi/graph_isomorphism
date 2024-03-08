@@ -11,7 +11,8 @@ def basic_colorref(path):
         glist = read_graph_list(Graph, G)[0]
 
     # create a dictionary for storing colors for all vertices of all graphs and initiate with degree coloring
-    graph_dict = degree_coloring(glist)
+    all_vertices = {}
+    graph_dict = degree_coloring(glist, all_vertices)
     result_dict = defaultdict(list)
     all_stable = False
     to_stabilize = len(glist)
@@ -54,8 +55,10 @@ def basic_colorref(path):
                     for index, n in enumerate(have_same_neighborhood):
                         if index > 0:
                             vertex_dict["last_color"] += 1
+                            # all_vertices["max_color"] += 1
                             for ve in have_same_neighborhood[n]:
                                 vertex_dict[ve] = vertex_dict["last_color"]
+                                # vertex_dict[ve] = all_vertices["max_color"]
 
                 # populate 'new_color_classes' with key = color , value = set(vertex labels)
                 for h in vertex_dict:
@@ -64,8 +67,6 @@ def basic_colorref(path):
 
                 # check if finished refining
                 if current_color_classes == new_color_classes:
-                    # print("Graph " , i, " finished with number of iterations: ", vertex_dict["iteration"])
-                    # print(sorted_current_color_classes)
                     to_stabilize -= 1
                     vertex_dict["stable"] = True
 
@@ -82,17 +83,21 @@ def basic_colorref(path):
     return parse_data(result_dict)
 
 
-def degree_coloring(glist):
+def degree_coloring(glist, all_vertices):
     graph_dict = {}
     for g in range(len(glist)):
         vertex_dict = {}
         for v in range(len(glist[g].vertices)):
             vertex_dict[v] = glist[g].vertices[v].degree
+            all_vertices[glist[g].vertices[v]] = glist[g].vertices[v].degree
+
         # creates an entry in the dictionary with a variable that stores the highest used color
         vertex_dict["last_color"] = max(vertex_dict.values())
         vertex_dict["stable"] = False
         vertex_dict["iteration"] = 0
         graph_dict[g] = vertex_dict
+
+    all_vertices["max_color"] = max(all_vertices.values())
     return graph_dict
 
 
@@ -119,4 +124,4 @@ def parse_data(data):
     return result
 
 
-# basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
+basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_6_15.grl")

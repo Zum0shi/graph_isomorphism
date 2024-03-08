@@ -31,6 +31,7 @@ def basic_colorref(path):
                     for vertex in glist[g].vertices:
                         result_dict[(g, vertex.label)] = vertex_dict[(g, vertex.label)]
                         del vertex_dict[(g, vertex.label)]
+                        # print("IM HERE HEHE")
                     graph_dict[g][2] = True
             else:
                 graph_dict[g][1] += 1
@@ -46,6 +47,8 @@ def basic_colorref(path):
 
         # creates a dictionary for neighbors colors
         for cc in color_classes:
+            print("neighborhoods in color class: ", cc)
+
             neighborhoods = defaultdict(set)
 
             # populate neighborhoods
@@ -55,27 +58,41 @@ def basic_colorref(path):
 
             # add updated colors to new dict
             for index, n in enumerate(neighborhoods):
+                if index == 0:
+                    print("skipping vertices: ", neighborhoods[n])
                 if index > 0:
-                    last_color += 1
-                    for vertex in neighborhoods[n]:
-                        new_vertex_dict[vertex] = last_color
+                    print("recoloring vertices: ", neighborhoods[n])
 
-        # for g in graph_dict:
-        #     print(g, graph_dict[g][1])
+                    last_color += 1
+
+                    # for graph in graph_dict:
+                    #     counter = 0
+                    #     for vertex in neighborhoods[n]:
+                    #         if vertex[0] == graph:
+                    #             counter += 1
+                    #             if counter > 1:
+                    #                 new_vertex_dict[vertex] = last_color
+
+                    for vertex in neighborhoods[n]:
+                        # print(vertex, "in neighborhood: ", neighborhoods[n], " colors gonna change")
+                        # if not graph_dict[vertex[0]][0]:
+                        new_vertex_dict[vertex] = last_color
 
         # check if refining process finished
         if vertex_dict == new_vertex_dict:
             for g in graph_dict:
                 print(g, graph_dict[g][1])
+
             # add remaining vertices
             for entry in vertex_dict:
                 result_dict[entry] = vertex_dict[entry]
 
+            # end refinement process
             all_stable = True
 
         else:
             # check if any graphs have been stabilized during this iteration
-            check_stability(glist, graph_dict, vertex_dict, new_vertex_dict)
+            check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes)
             vertex_dict = new_vertex_dict
 
     return parse_data(result_dict, graph_dict, glist)
@@ -109,7 +126,7 @@ def get_neighbor_colors(vlist, graph_index, vertex_dict):
 
 
 # for each graph check whether it has stabilized
-def check_stability(glist, graph_dict, vertex_dict, new_vertex_dict):
+def check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes):
     for i, g in enumerate(glist):
         if not graph_dict[i][0]:
             vertices = []
@@ -123,7 +140,25 @@ def check_stability(glist, graph_dict, vertex_dict, new_vertex_dict):
                     graph_dict[i][0] = False
                     break
 
+            print("graph ", i, " has been stabilized: ", graph_dict[i][0], "iterations: ", graph_dict[i][1])
 
+    # for i, g in enumerate(glist):
+    #     if not graph_dict[i][0]:
+    #         graph_dict[i][0] = True
+    #         for cc in color_classes:
+    #             counter = 0
+    #             neighborhoods = defaultdict(set)
+    #             for n in color_classes[cc]:
+    #                 if i == n[0]:
+    #                     counter += 1
+    #             if counter > 1:
+    #                 graph_dict[i][0] = False
+    #                 break
+    #         if graph_dict[i][0]:
+    #             print(graph_dict[i][0])
+
+
+# prepare data for codegrade
 def parse_data(result_dict, graph_dict, glist):
     color_partition_per_graph = defaultdict(list)
     for g in graph_dict:
@@ -142,7 +177,7 @@ def parse_data(result_dict, graph_dict, glist):
 
     result = []
     for s in color_partition_per_graph:
-        print(color_partition_per_graph[s], s)
+        # print(color_partition_per_graph[s], s)
         tupp = (color_partition_per_graph[s], graph_dict[color_partition_per_graph[s][0]][1],
                 len(s) == len(glist[color_partition_per_graph[s][0]].vertices))
         result.append(tupp)
@@ -151,4 +186,4 @@ def parse_data(result_dict, graph_dict, glist):
     return result
 
 
-basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
+basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_6_15.grl")
