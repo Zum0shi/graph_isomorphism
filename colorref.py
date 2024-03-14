@@ -33,7 +33,6 @@ def basic_colorref(path):
                     for vertex in glist[g].vertices:
                         result_dict[(g, vertex.label)] = vertex_dict[(g, vertex.label)]
                         del vertex_dict[(g, vertex.label)]
-                        # print("IM HERE HEHE")
                     graph_dict[g][2] = True
             else:
                 graph_dict[g][1] += 1
