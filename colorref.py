@@ -4,13 +4,16 @@ from graph_io import *
 from line_profiler_pycharm import profile
 
 
-def basic_colorref(path):
-    # create a list of all graphs in the file
-    with open(path) as G:
-        glist = read_graph_list(Graph, G)[0]
+def basic_colorref(graphs, coloring=None):
+    # the list of graphs to be refined
+    glist = graphs
 
     # a dictionary containing key = (graph_index, vertex.label), value = color | after degree coloring
-    vertex_dict = degree_coloring(glist)
+    if coloring is None:
+        vertex_dict = degree_coloring(glist)
+    else:
+        vertex_dict = coloring
+
     # creates a dictionary with key = graph_index and value = list(isStable , iterations, isFinished)
     graph_dict = generate_graph_dict(glist)
     # dictionary to store data of successfully refined graphs
