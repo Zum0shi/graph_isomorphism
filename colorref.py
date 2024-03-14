@@ -1,12 +1,9 @@
 from graph import *
 from collections import defaultdict
 from graph_io import *
+from line_profiler_pycharm import profile
 
 
-# from line_profiler_pycharm import profile
-
-
-# @profile
 def basic_colorref(path):
     # create a list of all graphs in the file
     with open(path) as G:
@@ -49,8 +46,6 @@ def basic_colorref(path):
 
         # creates a dictionary for neighbors colors
         for cc in color_classes:
-            print("neighborhoods in color class: ", cc)
-
             neighborhoods = defaultdict(set)
 
             # populate neighborhoods
@@ -60,9 +55,6 @@ def basic_colorref(path):
 
             # add updated colors to new dict
             for index, n in enumerate(neighborhoods):
-                if index == 0:
-                    print("skipping vertices: ", neighborhoods[n])
-
                 if index > 0:
                     print("recoloring vertices: ", neighborhoods[n])
                     last_color += 1
@@ -87,7 +79,7 @@ def basic_colorref(path):
             check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes)
             vertex_dict = new_vertex_dict
 
-    return parse_data(result_dict, graph_dict, glist)
+    return parse_data(result_dict, graph_dict, glist), vertex_dict, last_color
 
 
 # creates a dictionary of all vertices and their colors based on degree coloring
@@ -165,4 +157,5 @@ def parse_data(result_dict, graph_dict, glist):
     print(result)
     return result
 
-# basic_colorref("./SampleGraphsBasicColorRefinement/colorref_largeexample_6_960.grl")
+
+basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_6_15.grl")
