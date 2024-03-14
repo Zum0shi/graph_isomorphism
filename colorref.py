@@ -59,7 +59,7 @@ def basic_colorref(graphs, coloring=None):
             # add updated colors to new dict
             for index, n in enumerate(neighborhoods):
                 if index > 0:
-                    print("recoloring vertices: ", neighborhoods[n])
+                    # print("recoloring vertices: ", neighborhoods[n])
                     last_color += 1
 
                     for vertex in neighborhoods[n]:
@@ -67,8 +67,8 @@ def basic_colorref(graphs, coloring=None):
 
         # check if refining process finished
         if vertex_dict == new_vertex_dict:
-            for g in graph_dict:
-                print(g, graph_dict[g][1])
+            # for g in graph_dict:
+                # print(g, graph_dict[g][1])
 
             # add remaining vertices
             for entry in vertex_dict:
@@ -157,8 +157,8 @@ def parse_data(result_dict, graph_dict, glist):
                 len(s) == len(glist[color_partition_per_graph[s][0]].vertices))
         result.append(tupp)
 
-    print(result)
+    # print(result)
     return result
 
 
-basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_6_15.grl")
+# basic_colorref("./SampleGraphsBasicColorRefinement/colorref_smallexample_6_15.grl")
