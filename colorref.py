@@ -81,8 +81,7 @@ def basic_colorref(graphs, coloring=None):
             # check if any graphs have been stabilized during this iteration
             check_stability(glist, graph_dict, vertex_dict, new_vertex_dict, color_classes)
             vertex_dict = new_vertex_dict
-
-    return parse_data(result_dict, graph_dict, glist), vertex_dict, last_color
+    return parse_data(result_dict, graph_dict, glist), result_dict, last_color
 
 
 # creates a dictionary of all vertices and their colors based on degree coloring
